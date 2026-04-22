@@ -9,10 +9,10 @@ Glossário de cibersegurança com foco prático em ofensiva, defesa, investigaç
 |-- index.html
 |-- assets/
 |   |-- css/
-|   |   `-- styles.css
-|   `-- js/
-|       `-- app.js
-`-- README.md
+|   |   -- styles.css
+|   |-- js/
+|       -- app.js
+|-- README.md
 ```
 
 ## Como executar
