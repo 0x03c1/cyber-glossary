@@ -422,6 +422,26 @@ function highlightText(text, query, searchRegex) {
     return text.replace(highlighter, "<mark>$1</mark>");
 }
 
+function localizeDefinition(definition) {
+    const replacements = [
+        [/\bcloud-native\b/gi, "nativo em nuvem"],
+        [/\bruntime\b/gi, "tempo de execução"],
+        [/\bmisconfigurations\b/gi, "configurações incorretas"],
+        [/\bfingerprinting\b/gi, "impressão digital"],
+        [/\btakeover\b/gi, "sequestro de conta"],
+        [/\bpayloads\b/gi, "cargas úteis"],
+        [/\bpayload\b/gi, "carga útil"],
+        [/\bredirectors\b/gi, "redirecionadores"],
+        [/\bredirector\b/gi, "redirecionador"],
+        [/\bbinding\b/gi, "vinculação"],
+        [/\bapps\b/gi, "aplicações"],
+        [/\bapp\b/gi, "aplicação"],
+        [/\bcloud\b/gi, "nuvem"]
+    ];
+
+    return replacements.reduce((text, [pattern, replacement]) => text.replace(pattern, replacement), definition);
+}
+
 function getFilteredTerms() {
     const query = searchQuery.trim();
     let regexError = false;
@@ -440,7 +460,8 @@ function getFilteredTerms() {
         if (!query) return matchFilter;
         if (!searchRegex) return false;
 
-        const matchSearch = searchRegex.test(t.term) || searchRegex.test(t.def);
+        const localizedDef = localizeDefinition(t.def);
+        const matchSearch = searchRegex.test(t.term) || searchRegex.test(t.def) || searchRegex.test(localizedDef);
         return matchFilter && matchSearch;
     });
 
@@ -618,7 +639,7 @@ function renderGlossary() {
 				<span class="term-toggle">></span>
 			  </div>
 			  <div class="term-body">
-				<div class="term-def">${t.def}${renderTools(t)}</div>
+                <div class="term-def">${localizeDefinition(t.def)}${renderTools(t)}</div>
 			  </div>
 			</div>
 		  `
