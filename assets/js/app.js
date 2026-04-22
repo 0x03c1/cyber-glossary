@@ -292,7 +292,51 @@ const terms = [
     { term: "MAST (Mobile Application Security Testing)", tag: "mobile", def: "Conjunto de tecnicas para avaliar seguranca de apps mobile em estatico e dinamico." },
     { term: "Mobile Device Management (MDM)", tag: "mobile", def: "Gestao centralizada de politicas, configuracao e conformidade de dispositivos moveis." },
     { term: "Mobile Threat Defense (MTD)", tag: "mobile", def: "Controles para detectar phishing, malware e risco de rede em dispositivos moveis." },
-    { term: "Smali", tag: "mobile", def: "Linguagem intermediaria Dalvik usada em analise e modificacao de APKs." }
+    { term: "Smali", tag: "mobile", def: "Linguagem intermediaria Dalvik usada em analise e modificacao de APKs." },
+
+    { term: "Adversary Emulation", tag: "pentest", def: "Simulacao de TTPs de grupos reais para validar controles e deteccoes." },
+    { term: "Android Exported Components Abuse", tag: "mobile", def: "Abuso de componentes exportados para executar acoes sem autorizacao adequada." },
+    { term: "API Pentesting", tag: "web", def: "Avaliacao de seguranca em APIs REST/GraphQL focando autenticacao, autorizacao e logica." },
+    { term: "AS-REP Roasting", tag: "pentest", def: "Ataque Kerberos contra contas sem pre-auth para quebra offline de hash." },
+    { term: "Assumed Breach", tag: "pentest", def: "Modelo de teste que parte da premissa de comprometimento inicial ja obtido." },
+    { term: "BadUSB", tag: "pentest", def: "Abuso de firmware USB para emulacao de teclado/rede e execucao de comandos." },
+    { term: "BOLA (Broken Object Level Authorization)", tag: "web", def: "Falha de autorizacao em API que permite acesso a objeto de outro usuario." },
+    { term: "Breach Simulation", tag: "pentest", def: "Simulacao de violacao para medir prontidao de deteccao e resposta." },
+    { term: "Business Logic Abuse", tag: "web", def: "Exploracao de regras de negocio para fraude ou acesso indevido." },
+    { term: "C2 Redirector", tag: "pentest", def: "Camada intermediaria para ocultar servidor C2 real e reduzir exposicao direta." },
+    { term: "Certificate Pinning", tag: "mobile", def: "Mecanismo que restringe certificados aceitos por app para reduzir MITM." },
+    { term: "Cobalt Strike Beacon", tag: "pentest", def: "Agente de pos-exploracao usado em simulacoes red team e adversary emulation." },
+    { term: "Credentialed API Scanning", tag: "web", def: "Varredura de API autenticada para ampliar cobertura de testes de seguranca." },
+    { term: "Deep Link Hijacking", tag: "mobile", def: "Sequestro de deeplink para redirecionar fluxo e capturar dados/sessoes." },
+    { term: "DMA Attack", tag: "pentest", def: "Ataque via acesso direto a memoria por interfaces/perifericos." },
+    { term: "Domain Fronting for C2", tag: "pentest", def: "Uso de infra intermediaria para mascarar destino de trafego C2." },
+    { term: "Evil Maid Attack", tag: "pentest", def: "Comprometimento fisico de dispositivo sem supervisao do proprietario." },
+    { term: "External Red Team", tag: "pentest", def: "Exercicio ofensivo simulando atacante externo sem acesso interno previo." },
+    { term: "GraphQL Injection", tag: "web", def: "Injecao e abuso de resolvers/esquema GraphQL para acesso indevido." },
+    { term: "Hardware Implant", tag: "pentest", def: "Dispositivo inserido fisicamente para espionagem, persistencia ou exfiltracao." },
+    { term: "HID Injection", tag: "pentest", def: "Injecao de comandos por dispositivo que emula teclado humano." },
+    { term: "Insecure Deserialization", tag: "web", def: "Desserializacao insegura que pode permitir execucao de codigo ou fraude logica." },
+    { term: "Internal Red Team", tag: "pentest", def: "Exercicio ofensivo simulando atacante com presenca na rede interna." },
+    { term: "iOS Keychain Abuse", tag: "mobile", def: "Abuso de itens armazenados no keychain para takeover ou elevacao de acesso." },
+    { term: "LAPS Abuse", tag: "pentest", def: "Abuso de credenciais locais gerenciadas para movimento lateral em AD." },
+    { term: "Mass Assignment", tag: "web", def: "Atribuicao indevida de campos sensiveis por binding automatico em API." },
+    { term: "Mobile Runtime Instrumentation", tag: "mobile", def: "Inspecao e alteracao de comportamento de app em tempo de execucao." },
+    { term: "NFC Relay Attack", tag: "network", def: "Reencaminhamento de comunicacao NFC para fraude de autenticacao/pagamento." },
+    { term: "O.MG Cable", tag: "pentest", def: "Cabo malicioso com capacidade de injecao de comandos e controle remoto." },
+    { term: "OAuth Device Code Phishing", tag: "social", def: "Fraude que explora fluxo device code para obter consentimento/token." },
+    { term: "OPSEC", tag: "pentest", def: "Disciplina de seguranca operacional para reduzir rastros e exposicao da operacao." },
+    { term: "Payload Staging", tag: "pentest", def: "Entrega em estagios para reduzir assinatura e melhorar evasao." },
+    { term: "Proxmark3", tag: "network", def: "Plataforma para pesquisa ofensiva/defensiva em RFID, NFC e proximidade." },
+    { term: "Red Team Infrastructure (RTI)", tag: "pentest", def: "Conjunto de dominios, redirectors, C2 e automacao para operacao red team." },
+    { term: "RFID Cloning", tag: "network", def: "Copia de credenciais RFID para bypass de controle fisico." },
+    { term: "Secure Enclave", tag: "mobile", def: "Coprocessador de seguranca para isolamento de chaves e operacoes sensiveis." },
+    { term: "Side-Channel Attack", tag: "crypto", def: "Ataque por vazamento indireto de informacao como tempo, consumo ou EM." },
+    { term: "Sliver C2", tag: "pentest", def: "Framework C2 moderno usado em simulacoes de adversario e red team." },
+    { term: "SSL Pinning Bypass", tag: "mobile", def: "Contorno de pinning para permitir inspecao de trafego em testes autorizados." },
+    { term: "Stager", tag: "pentest", def: "Componente inicial de payload responsavel por baixar/carregar estagio seguinte." },
+    { term: "Supply Chain Hardware Tampering", tag: "defense", def: "Manipulacao de hardware na cadeia de suprimentos antes da entrega." },
+    { term: "UAC Bypass", tag: "pentest", def: "Tecnicas para elevar privilegio no Windows evitando prompt UAC." },
+    { term: "USB Rubber Ducky", tag: "pentest", def: "Dispositivo de emulacao HID para automacao de comandos em testes fisicos." }
 ];
 
 terms.sort((a, b) => a.term.localeCompare(b.term));
@@ -457,7 +501,24 @@ function getRelatedTools(termObj) {
         "Jailbreak/Root Detection Bypass": ["Frida", "Objection", "Magisk", "Cycript"],
         "Mobile Device Management (MDM)": ["Microsoft Intune", "VMware Workspace ONE", "Jamf", "Ivanti EPMM"],
         "Mobile Threat Defense (MTD)": ["Microsoft Defender for Endpoint", "Zimperium", "Lookout", "Wandera"],
-        "Frida": ["Frida", "Objection", "r2frida", "Burp Suite"]
+        "Frida": ["Frida", "Objection", "r2frida", "Burp Suite"],
+
+        "Adversary Emulation": ["MITRE Caldera", "Cobalt Strike", "Atomic Red Team", "Prelude Operator"],
+        "API Pentesting": ["Burp Suite", "Postman", "OWASP ZAP", "Insomnia"],
+        "BOLA (Broken Object Level Authorization)": ["Burp Suite", "Postman", "OWASP ZAP", "ffuf"],
+        "GraphQL Injection": ["InQL", "GraphQLmap", "Burp Suite", "Clairvoyance"],
+        "Mass Assignment": ["Burp Suite", "Postman", "OWASP ZAP", "Schemathesis"],
+        "SSL Pinning Bypass": ["Frida", "Objection", "apk-mitm", "Burp Suite"],
+        "USB Rubber Ducky": ["Hak5 PayloadStudio", "USB Rubber Ducky", "DuckToolkit", "Flipper Zero"],
+        "BadUSB": ["USB Rubber Ducky", "Flipper Zero", "Digispark", "P4wnP1"],
+        "O.MG Cable": ["O.MG Cable", "Wireshark", "tcpdump", "Bettercap"],
+        "RFID Cloning": ["Proxmark3", "ChameleonMini", "libnfc", "mfoc"],
+        "NFC Relay Attack": ["Proxmark3", "NFC Tools", "libnfc", "ChameleonUltra"],
+        "AS-REP Roasting": ["Rubeus", "Impacket GetNPUsers", "Hashcat", "BloodHound"],
+        "UAC Bypass": ["UACME", "PowerUp", "Seatbelt", "WinPwn"],
+        "LAPS Abuse": ["LAPSToolkit", "CrackMapExec", "BloodHound", "PowerView"],
+        "Sliver C2": ["Sliver", "Mythic", "Havoc", "Nginx"],
+        "Cobalt Strike Beacon": ["Cobalt Strike", "Malleable C2", "Nmap", "BloodHound"]
     };
 
     if (exactTools[termObj.term]) return exactTools[termObj.term];
@@ -468,6 +529,9 @@ function getRelatedTools(termObj) {
     if (name.includes("forensic") || name.includes("dfir") || name.includes("imaging") || name.includes("timeline") || name.includes("registry") || name.includes("mft") || name.includes("prefetch")) return ["Autopsy", "Volatility", "KAPE", "Velociraptor"];
     if (name.includes("ransom") || name.includes("malware") || name.includes("rootkit") || name.includes("infostealer") || name.includes("loader") || name.includes("hollowing") || name.includes("injection") || name.includes("wiper")) return ["YARA", "Volatility", "Ghidra", "ANY.RUN"];
     if (name.includes("mobile") || name.includes("android") || name.includes("ios") || name.includes("apk") || name.includes("frida") || name.includes("jailbreak") || name.includes("root detection")) return ["MobSF", "Frida", "Objection", "Jadx"];
+    if (name.includes("api") || name.includes("graphql") || name.includes("bola") || name.includes("mass assignment") || name.includes("deserialization")) return ["Burp Suite", "Postman", "OWASP ZAP", "ffuf"];
+    if (name.includes("red team") || name.includes("adversary") || name.includes("opsec") || name.includes("beacon") || name.includes("c2") || name.includes("stager")) return ["MITRE Caldera", "Sliver", "Cobalt Strike", "Nmap"];
+    if (name.includes("usb") || name.includes("rfid") || name.includes("nfc") || name.includes("hardware") || name.includes("hid") || name.includes("dma") || name.includes("evil maid")) return ["Proxmark3", "Flipper Zero", "USB Rubber Ducky", "Wireshark"];
     if (name.includes("cloud") || name.includes("cnapp") || name.includes("cwpp") || name.includes("cspm") || name.includes("identity") || name.includes("oauth") || name.includes("saml") || name.includes("service principal") || name.includes("workload")) return ["Prowler", "ScoutSuite", "Wiz", "Defender for Cloud"];
     if (name.includes("carding") || name.includes("credential market") || name.includes("fullz") || name.includes("combo") || name.includes("fraud") || name.includes("logs shop")) return ["Maltego", "SpiderFoot", "MISP", "OpenCTI"];
 
