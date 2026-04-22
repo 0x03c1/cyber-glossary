@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Glossário Cyber // Pentest Edition</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+
+<body>
+
+  <div class="header">
+    <div class="header-top">
+      <div class="logo">
+        <div class="logo-icon">⬡</div>
+        <div class="logo-text">
+          <span class="logo-main">CyberGlossary</span>
+          <span class="logo-sub">Pentest Edition // v1.0</span>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat-item">
+          <span class="stat-num" id="total-count">0</span>
+          <span>termos</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num" id="visible-count">0</span>
+          <span>visíveis</span>
+        </div>
+      </div>
+    </div>
+    <div class="search-bar">
+      <span class="search-prompt">root@cyber:~$</span>
+      <input type="text" class="search-input" id="searchInput" placeholder="grep -i 'termo' glossario.db"
+        autocomplete="off" spellcheck="false">
+      <span class="search-count" id="searchCount"></span>
+    </div>
+  </div>
+
+  <div class="filters" id="filterBar">
+    <button class="filter-btn active" data-filter="all">Todos</button>
+    <button class="filter-btn" data-filter="pentest">Pentest</button>
+    <button class="filter-btn" data-filter="network">Redes</button>
+    <button class="filter-btn" data-filter="web">Web</button>
+    <button class="filter-btn" data-filter="mobile">Mobile</button>
+    <button class="filter-btn" data-filter="malware">Malware</button>
+    <button class="filter-btn" data-filter="crypto">Criptografia</button>
+    <button class="filter-btn" data-filter="social">Engenharia Social</button>
+    <button class="filter-btn" data-filter="defense">Defesa</button>
+    <button class="filter-btn" data-filter="forensics">Forense</button>
+  </div>
+
+  <div class="main">
+    <div class="sidebar">
+      <div class="sidebar-title">// Índice</div>
+      <div id="letterIndex"></div>
+    </div>
+    <div class="content" id="glossaryContent"></div>
+  </div>
+
+  <div class="pagination" id="paginationBar">
+    <button class="page-btn" id="prevPageBtn" type="button">Anterior</button>
+    <span class="page-info" id="pageInfo">Página 1 de 1</span>
+    <button class="page-btn" id="nextPageBtn" type="button">Próxima</button>
+  </div>
+
+  <script src="assets/js/app.js"></script>
+</body>
+
+</html>
