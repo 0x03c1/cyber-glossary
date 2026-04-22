@@ -299,6 +299,8 @@ terms.sort((a, b) => a.term.localeCompare(b.term));
 
 let currentFilter = "all";
 let searchQuery = "";
+let useRegexSearch = false;
+let useWholeWordSearch = false;
 let currentPage = 1;
 const termsPerPage = 40;
 
@@ -352,11 +354,53 @@ function buildLetterIndex(visibleTerms) {
         .join("");
 }
 
-function highlightText(text, query) {
-    if (!query) return text;
-    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const re = new RegExp(`(${escaped})`, "gi");
-    return text.replace(re, "<mark>$1</mark>");
+function escapeRegExp(text) {
+    return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function getSearchRegex(query) {
+    if (!query) return null;
+
+    if (useRegexSearch) {
+        return new RegExp(query, "i");
+    }
+
+    if (useWholeWordSearch) {
+        return new RegExp(`\\b${escapeRegExp(query)}\\b`, "i");
+    }
+
+    return new RegExp(escapeRegExp(query), "i");
+}
+
+function highlightText(text, query, searchRegex) {
+    if (!query || !searchRegex) return text;
+    const highlighter = new RegExp(`(${searchRegex.source})`, "gi");
+    return text.replace(highlighter, "<mark>$1</mark>");
+}
+
+function getFilteredTerms() {
+    const query = searchQuery.trim();
+    let regexError = false;
+    let searchRegex = null;
+
+    if (query) {
+        try {
+            searchRegex = getSearchRegex(query);
+        } catch (_error) {
+            regexError = true;
+        }
+    }
+
+    const filtered = terms.filter((t) => {
+        const matchFilter = currentFilter === "all" || t.tag === currentFilter;
+        if (!query) return matchFilter;
+        if (!searchRegex) return false;
+
+        const matchSearch = searchRegex.test(t.term) || searchRegex.test(t.def);
+        return matchFilter && matchSearch;
+    });
+
+    return { filtered, regexError, searchRegex };
 }
 
 function getRelatedTools(termObj) {
@@ -449,12 +493,7 @@ function renderTools(termObj) {
 }
 
 function renderGlossary() {
-    const filtered = terms.filter((t) => {
-        const matchFilter = currentFilter === "all" || t.tag === currentFilter;
-        const q = searchQuery.toLowerCase();
-        const matchSearch = !q || t.term.toLowerCase().includes(q) || t.def.toLowerCase().includes(q);
-        return matchFilter && matchSearch;
-    });
+    const { filtered, regexError, searchRegex } = getFilteredTerms();
 
     const totalPages = Math.max(1, Math.ceil(filtered.length / termsPerPage));
     if (currentPage > totalPages) currentPage = totalPages;
@@ -466,7 +505,13 @@ function renderGlossary() {
     document.getElementById("total-count").textContent = terms.length;
 
     const searchCountEl = document.getElementById("searchCount");
-    searchCountEl.textContent = searchQuery ? `${filtered.length} resultado${filtered.length !== 1 ? "s" : ""}` : "";
+    if (!searchQuery) {
+        searchCountEl.textContent = "";
+    } else if (regexError) {
+        searchCountEl.textContent = "regex invalida";
+    } else {
+        searchCountEl.textContent = `${filtered.length} resultado${filtered.length !== 1 ? "s" : ""}`;
+    }
 
     const pageInfo = document.getElementById("pageInfo");
     const prevBtn = document.getElementById("prevPageBtn");
@@ -504,7 +549,7 @@ function renderGlossary() {
                         (t) => `
 			<div class="term-card" id="card-${slugify(t.term)}" onclick="toggleCard(this)">
 			  <div class="term-header">
-				<span class="term-name">${highlightText(t.term, searchQuery)}</span>
+                <span class="term-name">${highlightText(t.term, searchQuery, searchRegex)}</span>
 				<span class="term-tag tag-${t.tag}">${getTagLabel(t.tag)}</span>
 				<span class="term-toggle">></span>
 			  </div>
@@ -556,6 +601,28 @@ document.getElementById("filterBar").addEventListener("click", function (e) {
     renderGlossary();
 });
 
+document.getElementById("wordToggle").addEventListener("click", function () {
+    useWholeWordSearch = !useWholeWordSearch;
+    if (useWholeWordSearch) {
+        useRegexSearch = false;
+        document.getElementById("regexToggle").classList.remove("active");
+    }
+    this.classList.toggle("active", useWholeWordSearch);
+    currentPage = 1;
+    renderGlossary();
+});
+
+document.getElementById("regexToggle").addEventListener("click", function () {
+    useRegexSearch = !useRegexSearch;
+    if (useRegexSearch) {
+        useWholeWordSearch = false;
+        document.getElementById("wordToggle").classList.remove("active");
+    }
+    this.classList.toggle("active", useRegexSearch);
+    currentPage = 1;
+    renderGlossary();
+});
+
 document.getElementById("prevPageBtn").addEventListener("click", function () {
     if (currentPage > 1) {
         currentPage -= 1;
@@ -565,12 +632,7 @@ document.getElementById("prevPageBtn").addEventListener("click", function () {
 });
 
 document.getElementById("nextPageBtn").addEventListener("click", function () {
-    const filteredCount = terms.filter((t) => {
-        const matchFilter = currentFilter === "all" || t.tag === currentFilter;
-        const q = searchQuery.toLowerCase();
-        const matchSearch = !q || t.term.toLowerCase().includes(q) || t.def.toLowerCase().includes(q);
-        return matchFilter && matchSearch;
-    }).length;
+    const filteredCount = getFilteredTerms().filtered.length;
     const totalPages = Math.max(1, Math.ceil(filteredCount / termsPerPage));
 
     if (currentPage < totalPages) {
