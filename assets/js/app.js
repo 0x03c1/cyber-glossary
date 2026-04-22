@@ -406,7 +406,13 @@ function getSearchRegex(query) {
     if (!query) return null;
 
     if (useRegexSearch) {
-        return new RegExp(query, "i");
+        if (query.length > 200) throw new Error("Regex muito longa");
+        const regex = new RegExp(query, "i");
+        // Sanity-check: test against a short string to trigger early ReDoS detection
+        const testStart = Date.now();
+        regex.test("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaab");
+        if (Date.now() - testStart > 100) throw new Error("Regex com backtracking excessivo");
+        return regex;
     }
 
     if (useWholeWordSearch) {
@@ -821,7 +827,7 @@ function renderGlossary() {
 
     const content = document.getElementById("glossaryContent");
     if (filtered.length === 0) {
-        content.innerHTML = `<div class="empty-state"><div class="code">0</div><p>Nenhum termo encontrado para "<span style="color:var(--green)">${searchQuery}</span>"</p></div>`;
+        content.innerHTML = `<div class="empty-state"><div class="code">0</div><p>Nenhum termo encontrado para "<span style="color:var(--green)">${escapeHtml(searchQuery)}</span>"</p></div>`;
         buildLetterIndex([]);
         return;
     }
@@ -847,7 +853,7 @@ function renderGlossary() {
                         (t) => `
 			<div class="term-card" id="card-${slugify(t.term)}" onclick="toggleCard(this)">
 			  <div class="term-header">
-                <span class="term-name">${highlightText(t.term, searchQuery, searchRegex)}</span>
+                <span class="term-name">${highlightText(escapeHtml(t.term), searchQuery, searchRegex)}</span>
 				<span class="term-tag tag-${t.tag}">${getTagLabel(t.tag)}</span>
 				<span class="term-toggle">></span>
 			  </div>
