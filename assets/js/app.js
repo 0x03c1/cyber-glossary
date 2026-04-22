@@ -389,29 +389,58 @@ function buildLetterIndex(visibleTerms) {
     });
 
     const idx = document.getElementById("letterIndex");
-    idx.innerHTML = Object.entries(letters)
+    idx.textContent = "";
+
+    Object.entries(letters)
         .sort()
-        .map(
-            ([l, c]) =>
-                `<div class="letter-group"><a class="letter-link" onclick="scrollToLetter('${l}')">${l} <span class="count">${c}</span></a></div>`
-        )
-        .join("");
+        .forEach(([l, c]) => {
+            const group = document.createElement("div");
+            group.className = "letter-group";
+
+            const link = document.createElement("a");
+            link.className = "letter-link";
+            link.href = "#";
+            link.addEventListener("click", (event) => {
+                event.preventDefault();
+                scrollToLetter(l);
+            });
+
+            link.append(document.createTextNode(`${l} `));
+
+            const count = document.createElement("span");
+            count.className = "count";
+            count.textContent = String(c);
+            link.appendChild(count);
+
+            group.appendChild(link);
+            idx.appendChild(group);
+        });
 }
 
 function escapeRegExp(text) {
     return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function isPotentiallyUnsafeRegex(query) {
+    if (query.length > 80) return true;
+    if (/\\\d/.test(query)) return true;
+    if (/\(\?[<!=:]/.test(query)) return true;
+    if (/\(\?:/.test(query)) return true;
+    if (/(\+|\*|\{[^}]*\})\s*(\+|\*|\{)/.test(query)) return true;
+    if (/\((?:[^()\\]|\\.)*[+*{](?:[^()\\]|\\.)*\)[+*{]/.test(query)) return true;
+    return false;
+}
+
 function getSearchRegex(query) {
     if (!query) return null;
 
     if (useRegexSearch) {
-        if (query.length > 200) throw new Error("Regex muito longa");
+        if (isPotentiallyUnsafeRegex(query)) throw new Error("Regex potencialmente insegura");
         const regex = new RegExp(query, "i");
-        // Sanity-check: test against a short string to trigger early ReDoS detection
+        // Teste simples de custo para bloquear padrões problemáticos antes do uso amplo.
         const testStart = Date.now();
         regex.test("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaab");
-        if (Date.now() - testStart > 100) throw new Error("Regex com backtracking excessivo");
+        if (Date.now() - testStart > 20) throw new Error("Regex com backtracking excessivo");
         return regex;
     }
 
@@ -422,10 +451,34 @@ function getSearchRegex(query) {
     return new RegExp(escapeRegExp(query), "i");
 }
 
-function highlightText(text, query, searchRegex) {
-    if (!query || !searchRegex) return text;
-    const highlighter = new RegExp(`(${searchRegex.source})`, "gi");
-    return text.replace(highlighter, "<mark>$1</mark>");
+function appendHighlightedText(container, text, query, searchRegex) {
+    if (!query || !searchRegex || useRegexSearch) {
+        container.textContent = text;
+        return;
+    }
+
+    const highlighter = new RegExp(searchRegex.source, "gi");
+    let lastIndex = 0;
+    let match;
+
+    while ((match = highlighter.exec(text)) !== null) {
+        if (match.index > lastIndex) {
+            container.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+        }
+
+        const mark = document.createElement("mark");
+        mark.textContent = match[0];
+        container.appendChild(mark);
+        lastIndex = match.index + match[0].length;
+
+        if (match[0].length === 0) {
+            highlighter.lastIndex += 1;
+        }
+    }
+
+    if (lastIndex < text.length) {
+        container.appendChild(document.createTextNode(text.slice(lastIndex)));
+    }
 }
 
 function localizeDefinition(definition) {
@@ -723,8 +776,26 @@ function getRelatedTools(termObj) {
 
 function renderTools(termObj) {
     const tools = getRelatedTools(termObj);
-    const chips = tools.map((tool) => `<span class="cmd">${escapeHtml(tool)}</span>`).join(" ");
-    return `<div class="term-tools"><span class="tools-label">Ferramentas associadas:</span> ${chips}</div>`;
+    const container = document.createElement("div");
+    container.className = "term-tools";
+
+    const label = document.createElement("span");
+    label.className = "tools-label";
+    label.textContent = "Ferramentas associadas:";
+    container.appendChild(label);
+    container.appendChild(document.createTextNode(" "));
+
+    tools.forEach((tool, index) => {
+        const chip = document.createElement("span");
+        chip.className = "cmd";
+        chip.textContent = tool;
+        container.appendChild(chip);
+        if (index < tools.length - 1) {
+            container.appendChild(document.createTextNode(" "));
+        }
+    });
+
+    return container;
 }
 
 function getLabExample(termObj) {
@@ -793,7 +864,17 @@ function getLabExample(termObj) {
 
 function renderLabExample(termObj) {
     const example = getLabExample(termObj);
-    return `<div class="term-lab"><span class="tools-label">Exemplo em laboratório:</span> ${escapeHtml(example)}</div>`;
+    const container = document.createElement("div");
+    container.className = "term-lab";
+
+    const label = document.createElement("span");
+    label.className = "tools-label";
+    label.textContent = "Exemplo em laboratório:";
+    container.appendChild(label);
+    container.appendChild(document.createTextNode(" "));
+    container.appendChild(document.createTextNode(example));
+
+    return container;
 }
 
 function renderGlossary() {
@@ -827,7 +908,28 @@ function renderGlossary() {
 
     const content = document.getElementById("glossaryContent");
     if (filtered.length === 0) {
-        content.innerHTML = `<div class="empty-state"><div class="code">0</div><p>Nenhum termo encontrado para "<span style="color:var(--green)">${escapeHtml(searchQuery)}</span>"</p></div>`;
+        content.textContent = "";
+
+        const emptyState = document.createElement("div");
+        emptyState.className = "empty-state";
+
+        const code = document.createElement("div");
+        code.className = "code";
+        code.textContent = "0";
+        emptyState.appendChild(code);
+
+        const message = document.createElement("p");
+        message.appendChild(document.createTextNode('Nenhum termo encontrado para "'));
+
+        const querySpan = document.createElement("span");
+        querySpan.style.color = "var(--green)";
+        querySpan.textContent = searchQuery;
+        message.appendChild(querySpan);
+
+        message.appendChild(document.createTextNode('"'));
+        emptyState.appendChild(message);
+        content.appendChild(emptyState);
+
         buildLetterIndex([]);
         return;
     }
@@ -839,35 +941,71 @@ function renderGlossary() {
         byLetter[l].push(t);
     });
 
-    content.innerHTML = Object.entries(byLetter)
+    content.textContent = "";
+
+    Object.entries(byLetter)
         .sort()
-        .map(
-            ([letter, ts]) => `
-	  <div class="letter-section" id="letter-${letter}">
-		<div class="letter-header">
-		  <span class="letter-char">${letter}</span>
-		  <div class="letter-line"></div>
-		</div>
-		${ts
-                    .map(
-                        (t) => `
-			<div class="term-card" id="card-${slugify(t.term)}" onclick="toggleCard(this)">
-			  <div class="term-header">
-                <span class="term-name">${highlightText(escapeHtml(t.term), searchQuery, searchRegex)}</span>
-				<span class="term-tag tag-${t.tag}">${getTagLabel(t.tag)}</span>
-				<span class="term-toggle">></span>
-			  </div>
-			  <div class="term-body">
-                <div class="term-def">${localizeDefinition(t.def)}${renderTools(t)}${renderLabExample(t)}</div>
-			  </div>
-			</div>
-		  `
-                    )
-                    .join("")}
-	  </div>
-	`
-        )
-        .join("");
+        .forEach(([letter, ts]) => {
+            const letterSection = document.createElement("div");
+            letterSection.className = "letter-section";
+            letterSection.id = `letter-${letter}`;
+
+            const letterHeader = document.createElement("div");
+            letterHeader.className = "letter-header";
+
+            const letterChar = document.createElement("span");
+            letterChar.className = "letter-char";
+            letterChar.textContent = letter;
+            letterHeader.appendChild(letterChar);
+
+            const letterLine = document.createElement("div");
+            letterLine.className = "letter-line";
+            letterHeader.appendChild(letterLine);
+
+            letterSection.appendChild(letterHeader);
+
+            ts.forEach((t) => {
+                const card = document.createElement("div");
+                card.className = "term-card";
+                card.id = `card-${slugify(t.term)}`;
+                card.addEventListener("click", () => toggleCard(card));
+
+                const termHeader = document.createElement("div");
+                termHeader.className = "term-header";
+
+                const termName = document.createElement("span");
+                termName.className = "term-name";
+                appendHighlightedText(termName, t.term, searchQuery, searchRegex);
+                termHeader.appendChild(termName);
+
+                const termTag = document.createElement("span");
+                termTag.className = `term-tag tag-${t.tag}`;
+                termTag.textContent = getTagLabel(t.tag);
+                termHeader.appendChild(termTag);
+
+                const termToggle = document.createElement("span");
+                termToggle.className = "term-toggle";
+                termToggle.textContent = ">";
+                termHeader.appendChild(termToggle);
+
+                card.appendChild(termHeader);
+
+                const termBody = document.createElement("div");
+                termBody.className = "term-body";
+
+                const termDef = document.createElement("div");
+                termDef.className = "term-def";
+                termDef.appendChild(document.createTextNode(localizeDefinition(t.def)));
+                termDef.appendChild(renderTools(t));
+                termDef.appendChild(renderLabExample(t));
+
+                termBody.appendChild(termDef);
+                card.appendChild(termBody);
+                letterSection.appendChild(card);
+            });
+
+            content.appendChild(letterSection);
+        });
 
     buildLetterIndex(pageTerms);
 }
@@ -945,8 +1083,5 @@ document.getElementById("nextPageBtn").addEventListener("click", function () {
         window.scrollTo({ top: 0, behavior: "smooth" });
     }
 });
-
-window.scrollToLetter = scrollToLetter;
-window.toggleCard = toggleCard;
 
 renderGlossary();
