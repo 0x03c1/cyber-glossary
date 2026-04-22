@@ -69,6 +69,20 @@ body::before {
     display: flex;
     align-items: center;
     gap: 12px;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+
+.logo:hover .logo-main,
+.logo:focus-visible .logo-main {
+    color: var(--green-dim);
+}
+
+.logo:hover .logo-icon,
+.logo:focus-visible .logo-icon {
+    border-color: var(--green-dim);
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
 }
 
 .logo-icon {
